@@ -1,0 +1,107 @@
+# Proxmox VE network configuration example
+#
+# SANITIZED PUBLIC REFERENCE
+#
+# This file demonstrates the structure of the lab network configuration.
+# Environment-specific IP addresses, subnets and other identifiers have been
+# replaced with placeholders.
+#
+# This file is documentation and is NOT intended to be copied directly into
+# /etc/network/interfaces without adapting the placeholder values.
+#
+# Honeypot-specific ingress and DNAT rules are documented separately in the
+# Proxmox T-Pot Honeypot Lab repository.
+
+auto lo
+iface lo inet loopback
+
+
+# ============================================================
+# Physical interfaces
+# ============================================================
+
+iface eno1 inet manual
+
+iface eno2 inet manual
+
+iface eno3 inet manual
+
+iface eno4 inet manual
+
+
+# ============================================================
+# WAN / upstream network
+# ============================================================
+
+auto vmbr0
+iface vmbr0 inet dhcp
+        bridge-ports eno1
+        bridge-stp off
+        bridge-fd 0
+
+
+# ============================================================
+# Main trusted LAN
+# ============================================================
+
+auto vmbr1
+iface vmbr1 inet static
+        address <trusted-lan-address-cidr>
+        bridge-ports eno2
+        bridge-stp off
+        bridge-fd 0
+
+        # NAT for Internet access
+        post-up iptables -t nat -A POSTROUTING -s <trusted-lan-subnet> -o vmbr0 -j MASQUERADE
+        post-down iptables -t nat -D POSTROUTING -s <trusted-lan-subnet> -o vmbr0 -j MASQUERADE
+
+
+# ============================================================
+# Wi-Fi network
+# ============================================================
+
+auto vmbr2
+iface vmbr2 inet static
+        address <wifi-address-cidr>
+        bridge-ports eno3
+        bridge-stp off
+        bridge-fd 0
+
+        # NAT for Internet access
+        post-up iptables -t nat -A POSTROUTING -s <wifi-subnet> -o vmbr0 -j MASQUERADE
+        post-down iptables -t nat -D POSTROUTING -s <wifi-subnet> -o vmbr0 -j MASQUERADE
+
+
+# ============================================================
+# Isolated cybersecurity lab
+# ============================================================
+
+auto vmbrlab
+iface vmbrlab inet static
+        address <lab-address-cidr>
+        bridge-ports none
+        bridge-stp off
+        bridge-fd 0
+
+        # Allow response traffic for established connections
+        post-up iptables -I FORWARD 1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+        # Prevent lab systems from initiating connections to trusted networks
+        post-up iptables -I FORWARD 2 -i vmbrlab -o vmbr1 -j DROP
+        post-up iptables -I FORWARD 3 -i vmbrlab -o vmbr2 -j DROP
+
+        # NAT for permitted lab Internet traffic
+        post-up iptables -t nat -A POSTROUTING -s <lab-subnet> -o vmbr0 -j MASQUERADE
+
+        # Proxmox firewall bridge connection tracking
+        post-up iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1
+
+        # Remove rules when vmbrlab goes down
+        post-down iptables -D FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        post-down iptables -D FORWARD -i vmbrlab -o vmbr1 -j DROP
+        post-down iptables -D FORWARD -i vmbrlab -o vmbr2 -j DROP
+        post-down iptables -t nat -D POSTROUTING -s <lab-subnet> -o vmbr0 -j MASQUERADE
+        post-down iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1
+
+
+source /etc/network/interfaces.d/*

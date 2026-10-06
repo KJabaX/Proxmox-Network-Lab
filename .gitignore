@@ -1,0 +1,36 @@
+# Editor temporary files
+*.kate-swp
+.*.kate-swp
+*.swp
+*.swo
+*~
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+# Backups
+*.bak
+*.backup
+*.orig
+
+# Evidence / packet captures
+*.pcap
+*.pcapng
+*.cap
+*.jsonl
+*.jsonl.gz
+*.tar
+*.tar.gz
+*.tgz
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

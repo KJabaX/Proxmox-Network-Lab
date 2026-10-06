@@ -1,0 +1,8 @@
+# Proxmox VE routing sysctl example
+#
+# SANITIZED PUBLIC REFERENCE
+#
+# Required when the Proxmox host is intentionally used to route IPv4 traffic
+# between selected network interfaces.
+
+net.ipv4.ip_forward=1
