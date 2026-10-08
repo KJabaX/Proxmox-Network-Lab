@@ -422,14 +422,11 @@ The honeypot project expands the infrastructure with:
 - Elasticsearch / Kibana
 - Attack investigations
 - IOC extraction
-- Malware analysis
+- Malware static-analysis workflow
 
 The implementation and attack investigations are documented separately in:
 
-**Proxmox T-Pot Honeypot Lab**
-
-> GitHub link will be added here.
-
+[**Proxmox T-Pot Honeypot Lab**](https://github.com/KJabaX/Proxmox-TPot-Honeypot-Lab)
 ---
 
 ## Repository Structure
